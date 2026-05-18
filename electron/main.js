@@ -283,9 +283,15 @@ async function launchKiosk(settings) {
     ? path.join(__dirname, '..', 'bin', 'cloudflared.exe') 
     : path.join(process.resourcesPath, 'bin', 'cloudflared.exe');
     
-  if (fs.existsSync(cloudflaredPath) && settings.CLOUDFLARE_TOKEN) {
+  let cfToken = settings.CLOUDFLARE_TOKEN;
+  if (cfToken && cfToken.includes(' ')) {
+    const parts = cfToken.trim().split(/\s+/);
+    cfToken = parts[parts.length - 1];
+  }
+
+  if (fs.existsSync(cloudflaredPath) && cfToken) {
     const { spawn } = require('child_process');
-    cloudflaredProcess = spawn(cloudflaredPath, ['tunnel', '--no-autoupdate', 'run', '--token', settings.CLOUDFLARE_TOKEN], {
+    cloudflaredProcess = spawn(cloudflaredPath, ['tunnel', '--no-autoupdate', 'run', '--token', cfToken], {
       detached: false,
       stdio: 'pipe'
     });
