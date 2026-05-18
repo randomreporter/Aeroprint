@@ -299,7 +299,10 @@ async function launchKiosk(settings) {
 
   // 4. Set custom domain URL
   console.log('[Main] Configuring custom domain...');
-  const publicUrl = settings.CUSTOM_DOMAIN.replace(/\/$/, "");
+  let publicUrl = settings.CUSTOM_DOMAIN.replace(/\/$/, "");
+  if (!publicUrl.startsWith('http')) {
+    publicUrl = 'https://' + publicUrl;
+  }
   const mobileUrl = `${publicUrl}/mobile`;
 
   console.log(`[Main] Mobile URL: ${mobileUrl}`);
