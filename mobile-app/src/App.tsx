@@ -19,8 +19,46 @@ export type PrintFile = {
     orientation: 'portrait' | 'landscape';
     copies: number;
     numPages: number;
+    pageRange: string;
+    originalNumPages: number;
+    selectedPagesCount: number;
   };
 };
+
+function parsePageRange(rangeStr: string, maxPages: number): number {
+  if (!rangeStr || rangeStr.trim() === '' || rangeStr.trim().toLowerCase() === 'all') {
+    return maxPages;
+  }
+
+  const pages = new Set<number>();
+  const parts = rangeStr.split(',');
+  
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    
+    if (trimmed.includes('-')) {
+      const [startStr, endStr] = trimmed.split('-');
+      const start = parseInt(startStr);
+      const end = parseInt(endStr);
+      
+      if (isNaN(start) || isNaN(end) || start > end || start < 1 || end > maxPages) {
+        return -1;
+      }
+      for (let i = start; i <= end; i++) {
+        pages.add(i);
+      }
+    } else {
+      const page = parseInt(trimmed);
+      if (isNaN(page) || page < 1 || page > maxPages) {
+        return -1;
+      }
+      pages.add(page);
+    }
+  }
+  
+  return pages.size;
+}
 
 function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -117,7 +155,15 @@ function App() {
             id: Math.random().toString(36).substring(7),
             file: file,
             fileUrl: data.fileUrl,
-            settings: { colorMode: 'bw', orientation: 'portrait', copies: 1, numPages }
+            settings: { 
+              colorMode: 'bw', 
+              orientation: 'portrait', 
+              copies: 1, 
+              numPages,
+              pageRange: '',
+              originalNumPages: numPages,
+              selectedPagesCount: numPages
+            }
           });
         }
       } catch (error) {
@@ -139,24 +185,56 @@ function App() {
   const updateActiveFileSettings = (settingsUpdate: Partial<PrintFile['settings']>) => {
     setPrintFiles(prev => {
       const newFiles = [...prev];
+      const activeFile = newFiles[activeIndex];
+      let newSettings = { ...activeFile.settings, ...settingsUpdate };
+      
+      if ('pageRange' in settingsUpdate) {
+        const count = parsePageRange(settingsUpdate.pageRange || '', newSettings.originalNumPages);
+        if (count !== -1) {
+          newSettings.selectedPagesCount = count;
+          newSettings.numPages = count;
+        } else {
+          newSettings.selectedPagesCount = -1;
+        }
+      }
+
       newFiles[activeIndex] = {
-        ...newFiles[activeIndex],
-        settings: { ...newFiles[activeIndex].settings, ...settingsUpdate }
+        ...activeFile,
+        settings: newSettings
       };
       return newFiles;
     });
   };
 
   const applySettingsToAll = () => {
-    setPrintFiles(prev => prev.map(f => ({
-      ...f,
-      settings: { ...activeFile.settings, numPages: f.settings.numPages } // Keep original numPages for each file
-    })));
+    setPrintFiles(prev => prev.map(f => {
+       const newSettings = { ...activeFile.settings };
+       const count = parsePageRange(newSettings.pageRange, f.settings.originalNumPages);
+       newSettings.originalNumPages = f.settings.originalNumPages;
+       newSettings.selectedPagesCount = count;
+       newSettings.numPages = count === -1 ? f.settings.originalNumPages : count;
+       
+       return { ...f, settings: newSettings };
+    }));
     alert('Settings applied to all files!');
   };
 
   const handlePrint = async () => {
     if (printFiles.length === 0) return;
+    
+    let totalSelectedPagesPreview = 0;
+    for (const f of printFiles) {
+      if (f.settings.selectedPagesCount === -1) {
+        alert(`Invalid page range for file: ${f.file.name}`);
+        return;
+      }
+      totalSelectedPagesPreview += (f.settings.selectedPagesCount * f.settings.copies);
+    }
+    
+    if (totalSelectedPagesPreview > 15) {
+      alert(`You have selected ${totalSelectedPagesPreview} total pages. The maximum allowed per order is 15.`);
+      return;
+    }
     
     socket.emit('mobile:payment_started', { sessionId });
     
@@ -207,6 +285,20 @@ function App() {
       alert("Could not initialize payment.");
     }
   };
+
+  let totalPrice = 0;
+  let totalSelectedPagesPreview = 0;
+  let hasInvalidRange = false;
+  
+  for (const f of printFiles) {
+    if (f.settings.selectedPagesCount === -1) {
+      hasInvalidRange = true;
+    } else {
+      const pricePerSheet = f.settings.colorMode === 'color' ? 15 : 5;
+      totalPrice += (pricePerSheet * f.settings.selectedPagesCount * f.settings.copies);
+      totalSelectedPagesPreview += (f.settings.selectedPagesCount * f.settings.copies);
+    }
+  }
 
   const activeFile = printFiles[activeIndex];
 
@@ -333,6 +425,18 @@ function App() {
             </div>
 
             <div className="space-y-6">
+              {/* Pages to Print */}
+              <div>
+                <label className="font-bold text-slate-800 flex items-center gap-2 mb-3"><FileText size={18} className="text-emerald-500" /> Pages to Print</label>
+                <input 
+                  type="text" 
+                  value={activeFile.settings.pageRange} 
+                  onChange={(e) => updateActiveFileSettings({ pageRange: e.target.value })}
+                  placeholder={`e.g. 1-${activeFile.settings.originalNumPages}, or leave empty for All`}
+                  className={`w-full p-3 rounded-xl border-2 outline-none transition-all ${activeFile.settings.selectedPagesCount === -1 ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 focus:border-emerald-500'}`}
+                />
+                <p className="text-xs text-slate-500 mt-2 font-medium">Leave empty for ALL pages, or type "1-3, 5"</p>
+              </div>
               {/* Orientation */}
               <div>
                 <label className="font-bold text-slate-800 flex items-center gap-2 mb-3"><LayoutTemplate size={18} className="text-emerald-500" /> Orientation</label>
@@ -361,7 +465,15 @@ function App() {
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 z-50">
-              <button onClick={handlePrint} className="w-full max-w-lg mx-auto flex items-center justify-center gap-2 bg-slate-900 text-white p-4 rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-all">
+              <div className="max-w-lg mx-auto flex items-center justify-between mb-3 px-2">
+                <span className="font-bold text-slate-500">Total Pages: <span className={totalSelectedPagesPreview > 15 ? "text-red-500" : "text-slate-800"}>{totalSelectedPagesPreview}/15</span></span>
+                <span className="font-black text-xl text-emerald-600">₹{totalPrice}</span>
+              </div>
+              <button 
+                onClick={handlePrint} 
+                disabled={hasInvalidRange || totalSelectedPagesPreview > 15 || isUploading}
+                className="w-full max-w-lg mx-auto flex items-center justify-center gap-2 bg-slate-900 text-white p-4 rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
+              >
                 <Printer size={22} /> Print All ({printFiles.length})
               </button>
             </div>

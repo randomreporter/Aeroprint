@@ -58,6 +58,10 @@ app.post('/print', async (req, res) => {
         monochrome: settings?.colorMode === 'bw',
       };
       
+      if (settings?.pageRange && settings.pageRange.trim() !== '') {
+        printOptions.pages = settings.pageRange.trim();
+      }
+      
       const isColor = settings?.colorMode !== 'bw';
       const psCommand = `$printer = (Get-WmiObject -Query 'SELECT * FROM Win32_Printer WHERE Default=$true').Name; Set-PrintConfiguration -PrinterName $printer -Color $${isColor ? 'true' : 'false'};`;
       
