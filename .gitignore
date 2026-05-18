@@ -1,0 +1,9 @@
+node_modules/
+dist-electron/
+dist/
+uploads/
+app-services.log
+.env
+app_logs.txt
+asar-list.txt
+start-tunnel.js

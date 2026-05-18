@@ -1,0 +1,83 @@
+{
+  "name": "aeroprint",
+  "version": "1.0.0",
+  "description": "Aeroprint — Secure Touchless Print Kiosk",
+  "main": "electron/main.js",
+  "author": "Aeroprint",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:kiosk\" \"npm run start:mobile\" \"npm run start:daemon\"",
+    "start:backend": "cd backend && npx ts-node src/index.ts",
+    "start:daemon": "cd daemon && npx ts-node src/index.ts",
+    "start:kiosk": "cd kiosk-app && npm run dev",
+    "start:mobile": "cd mobile-app && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:daemon": "cd daemon && npm run build",
+    "build:frontend": "cd mobile-app && npm run build && cd ../kiosk-app && npm run build",
+    "build": "npm run build:backend && npm run build:daemon && npm run build:frontend",
+    "start:electron": "npm run build && electron .",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "axios": "^1.16.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "electron-updater": "^6.1.8",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "node-cron": "^3.0.3",
+    "pdf-to-printer": "^5.8.0",
+    "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^35.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.aeroprint.kiosk",
+    "productName": "Aeroprint",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "extraResources": [
+      "bin/cloudflared.exe"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "randomreporter",
+        "repo": "Aeroprint",
+        "private": false
+      }
+    ],
+    "files": [
+      "electron/**/*",
+      "backend/dist/**/*",
+      "backend/package.json",
+      "daemon/dist/**/*",
+      "daemon/package.json",
+      "kiosk-app/dist/**/*",
+      "mobile-app/dist/**/*",
+      "!**/node_modules/.cache",
+      "!**/.git"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": null,
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerHeaderIcon": null,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aeroprint"
+    }
+  }
+}

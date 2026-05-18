@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aeroprint — Setup</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0A0F1C 0%, #1a1f3a 50%, #0d1229 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+    
+    .container {
+      width: 520px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 2rem;
+      padding: 3rem;
+      backdrop-filter: blur(40px);
+      -webkit-app-region: no-drag;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 2rem;
+    }
+    
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #3b82f6, #7c3aed);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 8px 20px rgba(59,130,246,0.3);
+    }
+    
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #f1f5f9;
+    }
+    
+    .logo h1 span { color: #60a5fa; font-weight: 300; }
+    
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #64748b;
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .field { margin-bottom: 1.25rem; }
+    
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    
+    .field input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .field input:focus {
+      border-color: #3b82f6;
+      background: rgba(59,130,246,0.05);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    
+    .field input::placeholder { color: #475569; }
+    
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(59,130,246,0.4);
+    }
+    
+    .btn:active { transform: scale(0.98); }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .status {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      min-height: 1.5rem;
+    }
+    
+    .status.success { color: #34d399; }
+    .status.error { color: #f87171; }
+    
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 1.5rem 0;
+    }
+    
+    .hint {
+      font-size: 0.75rem;
+      color: #475569;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <div class="logo-icon">🖨️</div>
+      <h1>AERO<span>PRINT</span></h1>
+    </div>
+    
+    <p style="font-size:0.9rem; color:#94a3b8; line-height:1.6; margin-bottom:0.5rem;">
+      Configure your kiosk credentials below. These are stored locally on this machine and are never transmitted externally.
+    </p>
+    
+    <div class="divider"></div>
+    
+    <div class="section-title">🔗 Cloudflare Zero Trust Configuration</div>
+    
+    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1);">
+      <strong style="display:block; margin-bottom:5px; color:#10b981;">Setup Instructions:</strong>
+      <ol style="margin: 0; padding-left: 20px; line-height: 1.5; color: #94a3b8;">
+        <li>Go to <b>dash.cloudflare.com</b> &gt; <b>Zero Trust</b></li>
+        <li>Navigate to <b>Networks</b> &gt; <b>Tunnels</b> and create a new tunnel</li>
+        <li>Copy the provided <b>Token</b> and paste it below</li>
+        <li>In Cloudflare, route <b>Public Hostname</b> to <b>http://localhost:4000</b></li>
+      </ol>
+    </div>
+
+    <div class="field">
+      <label>Cloudflare Tunnel Token</label>
+      <input type="password" id="cfToken" placeholder="eyJhIjoi..." />
+    </div>
+
+    <div class="field">
+      <label>Custom Domain URL</label>
+      <input type="text" id="customDomain" placeholder="e.g. https://aeroprint.festiveradar.com" />
+      <p class="hint">The domain you configured in Cloudflare</p>
+    </div>
+    
+    <div class="section-title">💳 Payment Gateway</div>
+    
+    <div class="field">
+      <label>Razorpay Key ID</label>
+      <input type="text" id="razorpayKeyId" placeholder="e.g. rzp_test_SqR4PG..." />
+    </div>
+    
+    <div class="field">
+      <label>Razorpay Key Secret</label>
+      <input type="password" id="razorpayKeySecret" placeholder="e.g. 1jBXSHGppQ4f..." />
+    </div>
+    
+    <button class="btn" id="saveBtn" onclick="saveSettings()">
+      Save & Launch Kiosk
+    </button>
+    
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <script>
+    // Load existing settings on page load
+    window.electronAPI.getSettings().then(settings => {
+      if (settings.CUSTOM_DOMAIN) document.getElementById('customDomain').value = settings.CUSTOM_DOMAIN;
+      if (settings.CLOUDFLARE_TOKEN) document.getElementById('cfToken').value = settings.CLOUDFLARE_TOKEN;
+      if (settings.RAZORPAY_KEY_ID) document.getElementById('razorpayKeyId').value = settings.RAZORPAY_KEY_ID;
+      if (settings.RAZORPAY_KEY_SECRET) document.getElementById('razorpayKeySecret').value = settings.RAZORPAY_KEY_SECRET;
+    });
+
+    async function saveSettings() {
+      const btn = document.getElementById('saveBtn');
+      const status = document.getElementById('statusMsg');
+      
+      const settings = {
+        CUSTOM_DOMAIN: document.getElementById('customDomain').value.trim(),
+        CLOUDFLARE_TOKEN: document.getElementById('cfToken').value.trim(),
+        RAZORPAY_KEY_ID: document.getElementById('razorpayKeyId').value.trim(),
+        RAZORPAY_KEY_SECRET: document.getElementById('razorpayKeySecret').value.trim()
+      };
+
+      if (!settings.CUSTOM_DOMAIN || !settings.CLOUDFLARE_TOKEN || !settings.RAZORPAY_KEY_ID || !settings.RAZORPAY_KEY_SECRET) {
+        status.textContent = 'Please fill in all fields.';
+        status.className = 'status error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Starting Services...';
+      status.textContent = 'Saving configuration and launching services...';
+      status.className = 'status';
+
+      try {
+        const result = await window.electronAPI.saveSettings(settings);
+        if (result.success) {
+          status.textContent = '✅ Kiosk is launching...';
+          status.className = 'status success';
+        } else {
+          status.textContent = '❌ ' + (result.error || 'Failed to start');
+          status.className = 'status error';
+          btn.disabled = false;
+          btn.textContent = 'Save & Launch Kiosk';
+        }
+      } catch (err) {
+        status.textContent = '❌ Unexpected error: ' + err.message;
+        status.className = 'status error';
+        btn.disabled = false;
+        btn.textContent = 'Save & Launch Kiosk';
+      }
+    }
+  </script>
+</body>
+</html>
