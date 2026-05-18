@@ -5,6 +5,7 @@ interface SessionData {
   kioskSocketId: string;
   mobileSocketId?: string;
   createdAt: number;
+  disconnectTimeout?: NodeJS.Timeout;
 }
 
 // Store active sessions: sessionId -> SessionData
@@ -22,6 +23,7 @@ export const setupSocketIO = (io: Server) => {
           if (session.mobileSocketId) {
              io.to(session.mobileSocketId).emit('session:terminated');
           }
+          if (session.disconnectTimeout) clearTimeout(session.disconnectTimeout);
           sessions.delete(existingSessionId);
         }
       }
@@ -46,6 +48,10 @@ export const setupSocketIO = (io: Server) => {
       const session = sessions.get(sessionId);
 
       if (session) {
+        if (session.disconnectTimeout) {
+          clearTimeout(session.disconnectTimeout);
+          session.disconnectTimeout = undefined;
+        }
         session.mobileSocketId = socket.id;
         socket.join(sessionId);
         
@@ -105,9 +111,17 @@ export const setupSocketIO = (io: Server) => {
           break;
         } else if (session.mobileSocketId === socket.id) {
           // Mobile disconnected
-          console.log(`Mobile disconnected from session ${sessionId}`);
-          io.to(session.kioskSocketId).emit('kiosk:mobile_disconnected');
+          console.log(`Mobile disconnected from session ${sessionId}. Starting 60s grace period.`);
           session.mobileSocketId = undefined;
+          
+          session.disconnectTimeout = setTimeout(() => {
+            const currentSession = sessions.get(sessionId);
+            if (currentSession && !currentSession.mobileSocketId) {
+              console.log(`Mobile did not return to session ${sessionId}. Terminating.`);
+              io.to(currentSession.kioskSocketId).emit('kiosk:mobile_disconnected');
+              sessions.delete(sessionId);
+            }
+          }, 60000); // 60 seconds grace period
           break;
         }
       }
