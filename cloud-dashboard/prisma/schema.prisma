@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("FRANCHISEE") // SUPER_ADMIN or FRANCHISEE
+  name          String?
+  phone         String?   // For WhatsApp alerts
+  bankAccountId String?   // For Razorpay Route linked account ID
+  kiosks        Kiosk[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Kiosk {
+  id              String    @id @default(cuid())
+  kioskKey        String    @unique // Unique API key for the electron app to authenticate
+  name            String
+  location        String?
+  pricingModel    String    @default("REVENUE_SHARE") // REVENUE_SHARE or FLAT_FEE
+  revenueShare    Int       @default(30) // Brand's cut percentage (e.g. 30 means 70/30)
+  flatFee         Int       @default(1500) // Monthly flat fee in INR
+  status          String    @default("OFFLINE") // ONLINE, OFFLINE, PRINTING, ERROR
+  paperCount      Int       @default(0) // Total pages printed over lifetime
+  currentError    String?   // PAPER_JAM, OUT_OF_PAPER, etc.
+  softwareVersion String?   // e.g. "2.0.1"
+  lastHeartbeat   DateTime? // Last time kiosk pinged the cloud
+  ownerId         String
+  owner           User      @relation(fields: [ownerId], references: [id])
+  printJobs       PrintJob[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model PrintJob {
+  id            String    @id @default(cuid())
+  kioskId       String
+  kiosk         Kiosk     @relation(fields: [kioskId], references: [id])
+  pageCount     Int
+  colorMode     String    // COLOR, MONOCHROME
+  totalAmount   Float
+  paymentId     String?   // Razorpay Payment ID
+  orderId       String?   // Razorpay Order ID
+  status        String    @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  refundId      String?   // Razorpay Refund ID if refunded
+  failureReason String?   // PAPER_JAM, OUT_OF_PAPER, SPOOLER_ERROR
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

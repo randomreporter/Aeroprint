@@ -127,7 +127,7 @@ function App() {
     const uploadedFiles: PrintFile[] = [];
 
     for (const file of selectedFiles) {
-      let numPages = 1; // Default for non-PDFs or failed parse
+      let numPages = 1; // Fallback
       
       if (file.type === 'application/pdf') {
         try {
@@ -151,6 +151,7 @@ function App() {
         });
         const data = await response.json();
         if (data.success) {
+          const finalPagesCount = data.numPages || numPages;
           uploadedFiles.push({
             id: Math.random().toString(36).substring(7),
             file: file,
@@ -159,10 +160,10 @@ function App() {
               colorMode: 'bw', 
               orientation: 'portrait', 
               copies: 1, 
-              numPages,
+              numPages: finalPagesCount,
               pageRange: '',
-              originalNumPages: numPages,
-              selectedPagesCount: numPages
+              originalNumPages: finalPagesCount,
+              selectedPagesCount: finalPagesCount
             }
           });
         }
@@ -337,7 +338,7 @@ function App() {
             </div>
             
             <label className="flex-1 border-2 border-dashed border-emerald-200 bg-white rounded-[2rem] flex flex-col items-center justify-center p-8 cursor-pointer relative overflow-hidden">
-              <input type="file" multiple accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+              <input type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
               {isUploading ? (
                 <div className="flex flex-col items-center">
                   <Loader2 className="animate-spin text-emerald-600 mb-6" size={56} />
@@ -382,10 +383,10 @@ function App() {
 
             {/* Document Preview & Pagination */}
             <div className="bg-slate-200 rounded-[1.5rem] p-4 flex flex-col justify-center items-center overflow-hidden mb-4 shadow-inner border border-slate-300 relative" style={{ minHeight: '280px' }}>
-               {activeFile.file.type === 'application/pdf' ? (
+               {activeFile.fileUrl ? (
                  <>
                    <div className={`transition-transform duration-500 origin-center ${activeFile.settings.orientation === 'landscape' ? '-rotate-90 scale-90' : 'rotate-0 scale-100'}`}>
-                     <Document file={activeFile.file} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+                     <Document file={`${BACKEND_URL}${activeFile.fileUrl}`} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
                        <Page pageNumber={pageNumber} width={180} renderTextLayer={false} renderAnnotationLayer={false} className="shadow-lg rounded-md overflow-hidden" />
                      </Document>
                    </div>
@@ -402,7 +403,7 @@ function App() {
                ) : (
                  <div className="flex flex-col items-center text-slate-500 gap-2">
                     <FileText size={48} className="opacity-50" />
-                    <p className="text-sm font-medium">Preview only available for PDF</p>
+                    <p className="text-sm font-medium">No document loaded</p>
                  </div>
                )}
             </div>

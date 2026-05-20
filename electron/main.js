@@ -138,9 +138,9 @@ function startBackendServer(settings) {
       env: { 
         ...process.env, 
         PORT: '4000',
-        RAZORPAY_KEY_ID: settings?.RAZORPAY_KEY_ID || '',
-        RAZORPAY_KEY_SECRET: settings?.RAZORPAY_KEY_SECRET || '',
+        KIOSK_KEY: settings?.KIOSK_KEY || '',
         CUSTOM_DOMAIN: settings?.CUSTOM_DOMAIN || '',
+        CLOUD_DASHBOARD_URL: settings?.CLOUD_DASHBOARD_URL || 'http://localhost:3001',
         KIOSK_DIST_PATH: getKioskDistPath(),
         MOBILE_DIST_PATH: getMobileDistPath(),
         UPLOADS_DIR: getUploadsDir(),
@@ -179,7 +179,7 @@ function startBackendServer(settings) {
   });
 }
 
-function startDaemonServer() {
+function startDaemonServer(settings) {
   return new Promise((resolve, reject) => {
     const daemonDir = getDaemonDir();
     const entryFile = path.join(daemonDir, 'dist', 'index.js');
@@ -190,7 +190,12 @@ function startDaemonServer() {
     
     daemonProcess = utilityProcess.fork(entryFile, [], {
       cwd: process.resourcesPath,
-      env: { ...process.env },
+      env: { 
+        ...process.env,
+        CLOUD_DASHBOARD_URL: settings?.CLOUD_DASHBOARD_URL || 'http://localhost:3001',
+        KIOSK_KEY: settings?.KIOSK_KEY || '',
+        SOFTWARE_VERSION: app.getVersion() || '2.0.0',
+      },
       stdio: 'pipe'
     });
 
@@ -275,7 +280,7 @@ async function launchKiosk(settings) {
 
   // 2. Start Daemon
   console.log('[Main] Starting Daemon...');
-  await startDaemonServer();
+  await startDaemonServer(settings);
 
   // 3. Start Cloudflare Tunnel
   console.log('[Main] Starting Cloudflare Tunnel...');

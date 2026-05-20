@@ -190,16 +190,17 @@
       <p class="hint">The domain you configured in Cloudflare</p>
     </div>
     
-    <div class="section-title">💳 Payment Gateway</div>
+    <div class="section-title">☁️ Cloud Integration</div>
     
     <div class="field">
-      <label>Razorpay Key ID</label>
-      <input type="text" id="razorpayKeyId" placeholder="e.g. rzp_test_SqR4PG..." />
+      <label>Cloud Dashboard URL</label>
+      <input type="text" id="cloudUrl" placeholder="e.g. https://cloud.bitemybooks.com" />
     </div>
     
     <div class="field">
-      <label>Razorpay Key Secret</label>
-      <input type="password" id="razorpayKeySecret" placeholder="e.g. 1jBXSHGppQ4f..." />
+      <label>Kiosk Key</label>
+      <input type="password" id="kioskKey" placeholder="e.g. KIOSK-XXXXXX" />
+      <p class="hint">The unique Kiosk Key generated on your Cloud Dashboard</p>
     </div>
     
     <button class="btn" id="saveBtn" onclick="saveSettings()">
@@ -214,8 +215,8 @@
     window.electronAPI.getSettings().then(settings => {
       if (settings.CUSTOM_DOMAIN) document.getElementById('customDomain').value = settings.CUSTOM_DOMAIN;
       if (settings.CLOUDFLARE_TOKEN) document.getElementById('cfToken').value = settings.CLOUDFLARE_TOKEN;
-      if (settings.RAZORPAY_KEY_ID) document.getElementById('razorpayKeyId').value = settings.RAZORPAY_KEY_ID;
-      if (settings.RAZORPAY_KEY_SECRET) document.getElementById('razorpayKeySecret').value = settings.RAZORPAY_KEY_SECRET;
+      if (settings.CLOUD_DASHBOARD_URL) document.getElementById('cloudUrl').value = settings.CLOUD_DASHBOARD_URL;
+      if (settings.KIOSK_KEY) document.getElementById('kioskKey').value = settings.KIOSK_KEY;
     });
 
     async function saveSettings() {
@@ -225,11 +226,11 @@
       const settings = {
         CUSTOM_DOMAIN: document.getElementById('customDomain').value.trim(),
         CLOUDFLARE_TOKEN: document.getElementById('cfToken').value.trim(),
-        RAZORPAY_KEY_ID: document.getElementById('razorpayKeyId').value.trim(),
-        RAZORPAY_KEY_SECRET: document.getElementById('razorpayKeySecret').value.trim()
+        CLOUD_DASHBOARD_URL: document.getElementById('cloudUrl').value.trim(),
+        KIOSK_KEY: document.getElementById('kioskKey').value.trim()
       };
 
-      if (!settings.CUSTOM_DOMAIN || !settings.CLOUDFLARE_TOKEN || !settings.RAZORPAY_KEY_ID || !settings.RAZORPAY_KEY_SECRET) {
+      if (!settings.CUSTOM_DOMAIN || !settings.CLOUDFLARE_TOKEN || !settings.CLOUD_DASHBOARD_URL || !settings.KIOSK_KEY) {
         status.textContent = 'Please fill in all fields.';
         status.className = 'status error';
         return;
