@@ -1,0 +1,48 @@
+name: Release Kiosk Application
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: |
+          echo "Installing root dependencies..."
+          npm install
+          
+          echo "Installing backend dependencies..."
+          npm install --prefix backend
+          
+          echo "Installing daemon dependencies..."
+          npm install --prefix daemon
+          
+          echo "Installing kiosk-app dependencies..."
+          npm install --prefix kiosk-app
+          
+          echo "Installing mobile-app dependencies..."
+          npm install --prefix mobile-app
+
+      - name: Build Application Layers
+        run: npm run build
+
+      - name: Package and Publish Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --publish always
