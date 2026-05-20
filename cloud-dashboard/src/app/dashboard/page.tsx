@@ -46,6 +46,10 @@ interface Stats {
   todayRevenue: number;
   failedJobs: number;
   totalPaperCount: number;
+  brandRevShareCut: number;
+  brandFlatFeeExpected: number;
+  franchiseeNetEarnings: number;
+  franchiseeOwedFlatFee: number;
 }
 
 interface KioskData {
@@ -612,7 +616,7 @@ export default function DashboardPage() {
                             color: theme === "dark" ? "#f1f5f9" : "#0f172a",
                             fontSize: "0.85rem",
                           }}
-                          formatter={(value: number) => [
+                          formatter={(value: any) => [
                             `₹${value}`,
                             "Revenue",
                           ]}

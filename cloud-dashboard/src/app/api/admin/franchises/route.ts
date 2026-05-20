@@ -99,7 +99,7 @@ export async function DELETE(req: NextRequest) {
     // In our schema, kiosk might reference user as owner (ownerId).
     // Let's delete the franchisee's kiosks first.
     const kiosks = await prisma.kiosk.findMany({ where: { ownerId: id } });
-    const kioskIds = kiosks.map((k) => k.id);
+    const kioskIds = kiosks.map((k: any) => k.id);
 
     // Delete print jobs of these kiosks first
     if (kioskIds.length > 0) {
